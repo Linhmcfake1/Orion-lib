@@ -1,0 +1,126 @@
+-- Import TweenService để tạo hiệu ứng mượt mà
+local TweenService = game:GetService("TweenService")
+
+-- Tạo một ScreenGui cho nút toggle
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ToggleUI"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- Đảm bảo GUI không bị đè lên
+
+-- Tạo ToggleButton
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ToggleButton.Size = UDim2.new(0, 66, 0, 66) -- Kích thước hình vuông
+ToggleButton.Position = UDim2.new(0, 10, 0, 10) -- Vị trí của nút
+ToggleButton.Text = "Hide UI"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 14
+ToggleButton.ZIndex = 10 -- Đặt ZIndex cao để nút không bị che
+
+-- Bo góc cho ToggleButton
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10) -- Bo góc nhẹ cho nút
+UICorner.Parent = ToggleButton
+
+-- Biến lưu trạng thái hiển thị của giao diện
+local isVisible = true
+local OrionScreenGui
+
+-- Hàm tìm kiếm ScreenGui của Orion Library
+local function findOrionScreenGui()
+    for _, child in ipairs(game.CoreGui:GetChildren()) do
+        if child:IsA("ScreenGui") and child.Name == "Orion" then
+            return child
+        end
+    end
+    return nil
+end
+
+-- Kiểm tra và cập nhật khi Orion Library mới được thực thi
+game.CoreGui.ChildAdded:Connect(function(child)
+    if child:IsA("ScreenGui") and child.Name == "Orion" then
+        OrionScreenGui = child
+        print("Orion Library mới đã được phát hiện!")
+
+        -- Đưa nút vào OrionScreenGui để tránh bị che
+        ToggleButton.Parent = OrionScreenGui
+    end
+end)
+
+-- Gọi hàm tìm kiếm ban đầu để tìm Orion nếu đã có sẵn
+OrionScreenGui = findOrionScreenGui()
+
+if OrionScreenGui then
+    -- Đưa nút vào OrionScreenGui nếu đã có sẵn
+    ToggleButton.Parent = OrionScreenGui
+end
+
+-- Biến lưu vị trí ban đầu khi kéo
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+-- Hàm để đảm bảo nút không ra ngoài màn hình
+local function clampPosition(position)
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    local buttonSize = ToggleButton.Size
+    local clampedX = math.clamp(position.X.Offset, 0, screenSize.X - buttonSize.X.Offset)
+    local clampedY = math.clamp(position.Y.Offset, 0, screenSize.Y - buttonSize.Y.Offset)
+    return UDim2.new(0, clampedX, 0, clampedY)
+end
+
+-- Chức năng kéo nút toggle với hiệu ứng mượt
+ToggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = ToggleButton.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+ToggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if dragging then
+            local delta = input.Position - dragStart
+            local newPosition = clampPosition(UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y))
+
+            -- Tạo hiệu ứng tween để di chuyển nút đến vị trí mới với thời gian 0.4 giây
+            local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+            local tween = TweenService:Create(ToggleButton, tweenInfo, {Position = newPosition})
+            tween:Play()
+        end
+    end
+end)
+
+-- Chức năng của nút toggle
+ToggleButton.MouseButton1Click:Connect(function()
+    if OrionScreenGui then
+        isVisible = not isVisible
+        
+        -- Ẩn hoặc hiện tất cả các phần tử con của OrionScreenGui, nhưng không ẩn nút toggle
+        for _, child in ipairs(OrionScreenGui:GetChildren()) do
+            if child ~= ToggleButton then
+                child.Visible = isVisible
+            end
+        end
+
+        -- Cập nhật văn bản của nút toggle
+        ToggleButton.Text = isVisible and "Hide UI" or "Show UI"
+    else
+        warn("Orion ScreenGui không tìm thấy!")
+    end
+end)
+
+-- Hàm để đảm bảo nút toggle hiển thị trên cùng
+game:GetService("RunService").RenderStepped:Connect(function()
+    if OrionScreenGui and OrionScreenGui.Enabled then
+        ToggleButton.ZIndex = 10
+    end
+end)
