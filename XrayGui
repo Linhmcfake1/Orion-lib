@@ -1,0 +1,50 @@
+-- Tìm GUI của Orion Library và điều chỉnh các thành phần bên trong nó
+local function makeOrionLibraryRGB(transparency)
+    local orionGui = game.CoreGui:FindFirstChild("Orion") -- Xác định GUI của Orion Library
+    if orionGui then
+        for _, obj in pairs(orionGui:GetDescendants()) do
+            if obj:IsA("Frame") or obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("ImageLabel") then
+                -- Đặt màu nền thành đen và trong suốt để loại bỏ lớp nền trắng
+                obj.BackgroundColor3 = Color3.fromRGB(0, 0, 0) 
+                obj.BackgroundTransparency = transparency
+                
+                -- Tạo các góc tròn cho các Frame
+                if obj:IsA("Frame") then
+                    local corner = Instance.new("UICorner")
+                    corner.CornerRadius = UDim.new(0, 12) -- Đặt độ tròn cho các góc
+                    corner.Parent = obj
+                end
+
+                -- Giữ cho văn bản rõ ràng hơn
+                if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+                    obj.TextTransparency = transparency / 2 -- Giảm độ trong suốt của chữ để chữ rõ hơn
+                    obj.TextColor3 = Color3.fromRGB(255, 255, 255) -- Giữ màu chữ trắng cho dễ đọc
+                end
+            end
+        end
+
+        -- Tạo hiệu ứng RGB
+        while true do
+            for i = 0, 255 do
+                local color = Color3.fromRGB(i, 0, 255 - i) -- Chuyển đổi từ màu đỏ sang xanh
+                orionGui.BackgroundColor3 = color
+                wait(0.01) -- Thay đổi tốc độ chuyển màu tại đây
+            end
+            for i = 0, 255 do
+                local color = Color3.fromRGB(255 - i, i, 0) -- Chuyển đổi từ xanh sang vàng
+                orionGui.BackgroundColor3 = color
+                wait(0.01)
+            end
+            for i = 0, 255 do
+                local color = Color3.fromRGB(0, 255 - i, i) -- Chuyển đổi từ vàng sang xanh lá
+                orionGui.BackgroundColor3 = color
+                wait(0.01)
+            end
+        end
+    else
+        warn("Orion Library GUI not found!")
+    end
+end
+
+-- Đặt độ mờ cho Orion Library với nền màu đen mờ
+makeOrionLibraryRGB(0.8) -- Đặt giá trị mờ cao hơn (0.4) để mờ hơn
