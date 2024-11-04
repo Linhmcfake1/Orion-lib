@@ -47,4 +47,4 @@ local function makeOrionLibraryRGB(transparency)
 end
 
 -- Đặt độ mờ cho Orion Library với nền màu đen mờ
-makeOrionLibraryRGB(0.8) -- Đặt giá trị mờ cao hơn (0.4) để mờ hơn
+makeOrionLibraryRGB(0.8) -- Đặt giá trị mờ cao hơn (0.8) để mờ hơn
